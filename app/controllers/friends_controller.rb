@@ -26,7 +26,6 @@ class FriendsController < ApplicationController
 	redirect_to view_path if @user_id
   end
   
-  
   def load_user
   	@app_id = "152063528195561"
 	@app_secret = "7d656869e695a00d35bd73a135262091"
