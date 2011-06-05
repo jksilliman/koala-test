@@ -1,4 +1,8 @@
 KoalaTest::Application.routes.draw do
+  get "friends/login"
+
+  get "friends/view"
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

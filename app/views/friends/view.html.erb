@@ -1,0 +1,11 @@
+<h1>Friends</h1>
+Welcome, <%= @profile['name'] %>.
+
+<ul>
+<% @friends.each do |friend| %>
+<li>
+<%= friend.name %>: 
+<%= friend.interests.join(", ") %>
+</li>
+<% end %>
+</ul>
