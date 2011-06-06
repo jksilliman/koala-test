@@ -11,8 +11,8 @@ end
 group :production do
   gem 'pg'
 end
-#gem 'koala'
-gem 'json'
+gem 'koala'
+#gem 'json'
 
 
 # Use unicorn as the web server
