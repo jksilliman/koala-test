@@ -11,7 +11,7 @@ end
 group :production do
   gem 'pg'
 end
-gem 'koala'
+gem 'koala', :git => 'git://github.com/jksilliman/koala.git'
 #gem 'json'
 
 

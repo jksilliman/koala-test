@@ -8,11 +8,23 @@ class FriendsController < ApplicationController
   def view
 	@profile = @graph.get_object("me")
 	
+	puts "Loaded profile"
 	friend_collection = @graph.get_connections('me', 'friends')
-	@friends = []
-	begin
-	  @friends += friend_collection.map{|info| Person.new(info)}
-    end while friend_collection = friend_collection.next_page
+
+	person_names = []
+	person_interests = Koala::Facebook::GraphAPI.batch do
+      #begin
+		friend_collection.each  do |info|
+	      @graph.get_connections(info['id'], 'interests')
+		  person_names << info['name']
+		end
+	  #while friend_collection = friend_collection.next_page
+	end
+	friend_info = person_names.zip(person_interests)
+	@friends = friend_info.map {|info| Person.new(info) }
+	
+	@friends.delete_if {|friend| friend.interests.empty? }
+	
   end
   
   
@@ -34,11 +46,19 @@ class FriendsController < ApplicationController
 	
 	@oauth = Koala::Facebook::OAuth.new(@app_id, @app_secret, @callback_url)
 	
-	info = @oauth.get_user_info_from_cookies(cookies)
+	if Rails.env.production?
+	  info = @oauth.get_user_info_from_cookies(cookies)
 	
-	if info
-	  oauth_access_token = info['access_token']
-	  @user_id = info['uid']
+	  if info
+	    oauth_access_token = info['access_token']
+		@user_id = info['uid']
+	  end
+    else
+	  oauth_access_token = "119908831367602|2.AQC650lY7FOHAMGY.3600.1307336400.1-1480650957|fnu7mGWFQCYRzs3L62eqN4XFRi8"
+	  @user_id = "1480650957"
+	end
+	
+	if @user_id
 	  @graph = Koala::Facebook::GraphAPI.new(oauth_access_token)
 	end
   end
@@ -46,14 +66,9 @@ class FriendsController < ApplicationController
 end
 
 class Person
-  attr_accessor :name, :picture, :interests
-  def initialize(graph, info)
-	@id = info['id']
-	@name = info['name']
-	@picture = graph.get_picture(@id)
-	
-	#Do I need to loop over pages here as well?
-	@interests = graph.get_connections(@id, 'interests').map {|obj| obj['name']}
-	
+  attr_accessor :name, :interests
+  def initialize(info)
+	@name = info[0]
+	@interests = info[1].map {|interest| interest['name']}
   end
 end

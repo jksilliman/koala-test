@@ -1,3 +1,11 @@
+GIT
+  remote: git://github.com/jksilliman/koala.git
+  revision: 596d72f94b1a4508b02fed6ab568a1b72802ae37
+  specs:
+    koala (1.1.0rc)
+      json (~> 1.0)
+      multipart-post (~> 1.0)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -40,6 +48,7 @@ GEM
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     mime-types (1.16)
+    multipart-post (1.1.2)
     pg (0.11.0-x86-mingw32)
     polyglot (0.3.1)
     rack (1.2.3)
@@ -71,7 +80,7 @@ PLATFORMS
   x86-mingw32
 
 DEPENDENCIES
-  json
+  koala!
   pg
   rails (= 3.0.7)
   sqlite3
