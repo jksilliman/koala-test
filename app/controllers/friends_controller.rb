@@ -12,14 +12,31 @@ class FriendsController < ApplicationController
 	friend_collection = @graph.get_connections('me', 'friends')
 
 	person_names = []
-	person_interests = Koala::Facebook::GraphAPI.batch do
-      #begin
-		friend_collection.each  do |info|
-	      @graph.get_connections(info['id'], 'interests')
-		  person_names << info['name']
-		end
-	  #while friend_collection = friend_collection.next_page
-	end
+	person_interests = []
+	
+	
+	
+	buffer = []
+    count = 0
+	begin
+	  friend_collection.each do |friend|
+         count += 1
+		 puts count
+		 buffer.push(friend)
+         if buffer.size == 20 #FB batch can only handle 20 items
+			 
+			    puts "Sending batch"
+				person_interests += Koala::Facebook::GraphAPI.batch do
+				  buffer.each  do |info|
+				    @graph.get_connections(info['id'], 'interests')
+				    person_names << info['name']
+				  end
+			    end
+	         buffer = []
+	     end
+	  end
+	end while friend_collection = friend_collection.next_page
+	
 	friend_info = person_names.zip(person_interests)
 	@friends = friend_info.map {|info| Person.new(info) }
 	
@@ -54,7 +71,7 @@ class FriendsController < ApplicationController
 		@user_id = info['uid']
 	  end
     else
-	  oauth_access_token = "119908831367602|2.AQC650lY7FOHAMGY.3600.1307336400.1-1480650957|fnu7mGWFQCYRzs3L62eqN4XFRi8"
+	  oauth_access_token = "152063528195561|2.AQAgOiDI5fD6UsPh.3600.1307336400.1-1480650957|fDQTBcFq3p_sZ2OFF3jTJwY2WgU"
 	  @user_id = "1480650957"
 	end
 	
