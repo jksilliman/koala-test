@@ -12,34 +12,51 @@ class FriendsController < ApplicationController
 	friend_collection = @graph.get_connections('me', 'friends')
 
 	person_names = []
+	person_ids = []
 	person_interests = []
 	
 	
-	
 	buffer = []
-    count = 0
+  count = 0
 	begin
 	  friend_collection.each do |friend|
-         count += 1
-		 puts count
-		 buffer.push(friend)
-         if buffer.size == 20 #FB batch can only handle 20 items
-			 
-			    puts "Sending batch"
-				person_interests += Koala::Facebook::GraphAPI.batch do
-				  buffer.each  do |info|
-				    @graph.get_connections(info['id'], 'interests')
-				    person_names << info['name']
-				  end
-			    end
-	         buffer = []
-	     end
+      count += 1
+		  puts count
+		  buffer.push(friend)
+      if buffer.size == 20 #FB batch can only handle 20 items
+     
+        puts "Sending batch"
+        person_interests += Koala::Facebook::GraphAPI.batch do
+          buffer.each  do |info|
+            @graph.get_connections(info['id'], 'interests')
+            person_names << info['name']
+            person_ids << info['id']
+          end
+        end
+        
+        buffer = []
+      end
 	  end
 	end while friend_collection = friend_collection.next_page
 	
 	friend_info = person_names.zip(person_interests)
-	@friends = friend_info.map {|info| Person.new(info) }
+	id_info = person_ids.zip(person_interests)
+  
+  id_info.each do |info|
+    id = info[0]
+    interests = info[1].map {|interest| interest['name']}
+    interests.each {|interest|
+      row = UserInterest.find_by_user_id_and_interest_id(id, interest)
+      UserInterest.create(:user_id => id, :interest_id => interest) unless row
+    }
+  end
+  
+  @friends = friend_info.map {|info| Person.new(info) }
 	
+  
+  
+  
+  
 	@friends.delete_if {|friend| friend.interests.empty? }
 	
   end
@@ -85,7 +102,7 @@ end
 class Person
   attr_accessor :name, :interests
   def initialize(info)
-	@name = info[0]
-	@interests = info[1].map {|interest| interest['name']}
+    @name = info[0]
+    @interests = info[1].map {|interest| interest['name']}
   end
 end
